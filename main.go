@@ -69,6 +69,8 @@ func main() {
 			for {
 				resp, err := client.Do(req)
 				if err != nil {
+					body, _ := io.ReadAll(resp.Body)
+					println(string(body))
 					break
 				}
 				defer resp.Body.Close()
