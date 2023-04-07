@@ -23,7 +23,8 @@ var (
 	client, _    = tls_client.NewHttpClient(tls_client.NewNoopLogger(), options...)
 	access_token = os.Getenv("ACCESS_TOKEN")
 	puid         = os.Getenv("PUID")
-	http_proxy        = os.Getenv("http_proxy")
+	http_proxy   = os.Getenv("HTTP_PROXY")
+	chat_api_url = os.Getenv("CHAT_API_URL")
 )
 
 func main() {
@@ -36,10 +37,16 @@ func main() {
 		client.SetProxy(http_proxy)
 		println("Proxy set:" + http_proxy)
 	}
+
+	base_url := "https://chat.openai.com"
+	if chat_api_url != "" {
+		base_url = chat_api_url
+	}
+
 	// Automatically refresh the puid cookie
 	if access_token != "" {
 		go func() {
-			url := "https://chat.openai.com/backend-api/models"
+			url := base_url + "/backend-api/models"
 			req, _ := http.NewRequest(http.MethodGet, url, nil)
 			req.Header.Set("Host", "chat.openai.com")
 			req.Header.Set("origin", "https://chat.openai.com/chat")
@@ -112,7 +119,12 @@ func proxy(c *gin.Context) {
 	var request *http.Request
 	var response *http.Response
 
-	url = "https://chat.openai.com/backend-api" + c.Param("path")
+	base_url := "https://chat.openai.com"
+	if chat_api_url != "" {
+		base_url = chat_api_url
+	}
+
+	url = base_url + "/backend-api" + c.Param("path")
 	request_method = c.Request.Method
 
 	request, err = http.NewRequest(request_method, url, c.Request.Body)
